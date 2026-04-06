@@ -8,13 +8,15 @@
     "./client": "./src/client.ts",
     "./schema": "./src/schema/index.ts",
     "./schema/shared": "./src/schema/shared.ts",
-    "./schema/standup": "./src/schema/standup.ts"
+    "./schema/standup": "./src/schema/standup.ts",
+    "./schema/market": "./src/schema/market.ts"
   },
   "scripts": {
     "db:push": "dotenv -e ../../.env.local -- drizzle-kit push",
     "db:generate": "dotenv -e ../../.env.local -- drizzle-kit generate",
     "db:migrate": "dotenv -e ../../.env.local -- drizzle-kit migrate",
     "db:seed": "dotenv -e ../../.env.local -- tsx ../../scripts/seed.ts",
+    "db:seed-market": "dotenv -e ../../.env.local -- tsx ../../scripts/seed-market.ts",
     "db:studio": "dotenv -e ../../.env.local -- drizzle-kit studio"
   },
   "dependencies": {

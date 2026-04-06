@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Newsreader, Manrope } from 'next/font/google'
+import { Newsreader, Manrope, Inter } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
 

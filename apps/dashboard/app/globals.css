@@ -30,6 +30,65 @@
   --color-on-ink: #e2e2e2;
 }
 
+/* ── Market Intelligence: The Sovereign Analyst ── */
+.market-theme {
+  --color-surface: #f4f6fa;
+  --color-surface-low: #edf0f6;
+  --color-surface-mid: #e4e8f0;
+  --color-surface-high: #dbe0ea;
+  --color-surface-highest: #d2d8e4;
+  --color-surface-lowest: #ffffff;
+  --color-surface-dim: #c8ceda;
+
+  --color-ink: #000e24;
+  --color-ink-container: #1a2a44;
+  --color-on-surface: #0a1628;
+  --color-on-surface-variant: #3a4a64;
+  --color-outline: #6a7a94;
+  --color-outline-variant: #b4c0d4;
+  --color-secondary: #4a5a74;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-chip: #d6e3ff;
+  --color-on-ink: #d6e3ff;
+
+  --font-body: var(--font-inter);
+}
+
+/* Market-specific utilities */
+.market-theme .ink-gradient {
+  background: linear-gradient(135deg, #000e24, #00234b);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(0, 14, 36, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.signal-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08rem;
+}
+.signal-chip-regulatory { color: #00730d; background: rgba(143, 247, 128, 0.15); }
+.signal-chip-earnings { color: #d17200; background: rgba(255, 220, 195, 0.2); }
+.signal-chip-ma { color: #ffffff; background: #000e24; }
+.signal-chip-competitive { color: #191c1e; background: #eceef0; }
+.signal-chip-funding { color: #2c4771; background: rgba(214, 227, 255, 0.3); }
+.signal-chip-research { color: #000e24; background: #f2f4f6; }
+.signal-chip-product_launch { color: #2c4771; background: rgba(214, 227, 255, 0.2); }
+.signal-chip-partnership { color: #3a4a64; background: rgba(180, 192, 212, 0.15); }
+.signal-chip-market_shift { color: #191c1e; background: #e4e8f0; }
+
 /* Base */
 body {
   font-family: var(--font-body);

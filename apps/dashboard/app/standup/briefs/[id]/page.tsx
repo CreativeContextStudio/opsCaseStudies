@@ -180,19 +180,16 @@ function renderBriefContent(raw: string): string {
       let text = trimmed.slice(2).trim()
       let indicator = ''
 
-      // Replace emoji with styled dots
-      if (text.startsWith('✅')) {
-        text = text.slice(1).trim()
-        indicator = '<span class="w-1.5 h-1.5 bg-ink shrink-0 mt-[6px]"></span>'
-      } else if (text.startsWith('🔄')) {
-        text = text.slice(1).trim()
-        indicator = '<span class="w-1.5 h-1.5 bg-secondary shrink-0 mt-[6px]"></span>'
-      } else if (text.startsWith('⚠️')) {
-        text = text.slice(1).trim()
-        indicator = '<span class="w-1.5 h-1.5 bg-error/60 shrink-0 mt-[6px]"></span>'
-      } else if (text.startsWith('🚨')) {
-        text = text.slice(1).trim()
-        indicator = '<span class="w-1.5 h-1.5 bg-error shrink-0 mt-[6px]"></span>'
+      // Strip emoji and replace with styled square indicators
+      // Use regex to strip all known status emoji (multi-byte safe)
+      const emojiMatch = text.match(/^(✅|🔄|⚠️|🚨)\s*/)
+      if (emojiMatch) {
+        const emoji = emojiMatch[1]
+        text = text.slice(emojiMatch[0].length)
+        if (emoji === '✅') indicator = '<span class="w-1.5 h-1.5 bg-ink shrink-0 mt-[6px]"></span>'
+        else if (emoji === '🔄') indicator = '<span class="w-1.5 h-1.5 bg-secondary shrink-0 mt-[6px]"></span>'
+        else if (emoji === '⚠️') indicator = '<span class="w-1.5 h-1.5 bg-error/60 shrink-0 mt-[6px]"></span>'
+        else if (emoji === '🚨') indicator = '<span class="w-1.5 h-1.5 bg-error shrink-0 mt-[6px]"></span>'
       } else {
         indicator = '<span class="w-1.5 h-1.5 bg-outline-variant shrink-0 mt-[6px]"></span>'
       }
