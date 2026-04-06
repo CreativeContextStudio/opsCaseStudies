@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getRecentStandups, getActiveProject, getTaskStats, getWorkstreamStats, getSystemRunStats } from '../lib/queries'
+import { formatShortDate, formatDay, formatMonthDay } from '../lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,6 +27,7 @@ export default async function StandupOverview() {
   const totalTasks = taskStats.reduce((sum: number, s: any) => sum + s.count, 0)
   const doneTasks = statusMap['done']?.count ?? 0
   const blockedTasks = statusMap['blocked']?.count ?? 0
+  const inProgressTasks = statusMap['in_progress']?.count ?? 0
   const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
 
   return (
@@ -38,124 +40,91 @@ export default async function StandupOverview() {
         <h1 className="font-display text-4xl text-sand-900 mt-1">
           {project.name}
         </h1>
-        <p className="text-sand-500 mt-2 text-sm">
-          Automated daily standup briefs for three audience levels
+        <p className="text-sand-500 mt-2 text-[15px]">
+          Automated daily standup briefs for three audience levels — team lead, executive, and client.
         </p>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-4 gap-4 mt-10">
-        <StatCard
-          label="Progress"
-          value={`${progressPct}%`}
-          detail={`${doneTasks} of ${totalTasks} tasks complete`}
-          style={0}
-        />
-        <StatCard
-          label="Blockers"
-          value={String(blockedTasks)}
-          detail={latestStandup ? `${latestStandup.at_risk_count} at risk` : 'No data'}
-          style={blockedTasks > 0 ? 2 : 1}
-        />
-        <StatCard
-          label="System Runs"
-          value={String(runStats?.total_runs ?? 0)}
-          detail={`${runStats?.successful ?? 0} successful`}
-          style={1}
-        />
-        <StatCard
-          label="Avg Tokens/Run"
-          value={runStats?.avg_tokens ? `${(runStats.avg_tokens / 1000).toFixed(1)}k` : '—'}
-          detail={`~${runStats?.avg_tool_calls ?? 0} tool calls`}
-          style={1}
-        />
+        <StatCard label="Progress" value={`${progressPct}%`} detail={`${doneTasks} of ${totalTasks} tasks`} variant="default" delay={0} />
+        <StatCard label="In Flight" value={String(inProgressTasks)} detail={`${blockedTasks} blocked`} variant={blockedTasks > 0 ? 'danger' : 'default'} delay={1} />
+        <StatCard label="Agent Runs" value={String(runStats?.total_runs ?? 0)} detail={`${runStats?.successful ?? 0} successful`} variant="default" delay={2} />
+        <StatCard label="Avg Cost" value={runStats?.avg_tokens ? `${(runStats.avg_tokens / 1000).toFixed(1)}k` : '—'} detail={`~${runStats?.avg_tool_calls ?? 0} tool calls/run`} variant="default" delay={3} />
       </div>
 
-      {/* Workstreams */}
-      <div className="mt-10 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-        <h2 className="font-display text-xl text-sand-800">Workstreams</h2>
-        <div className="grid grid-cols-3 gap-4 mt-4">
-          {workstreamStats.map((ws: any) => {
-            const pct = ws.total > 0 ? Math.round((ws.done / ws.total) * 100) : 0
-            return (
-              <div key={ws.workstream} className="rounded-xl border border-sand-200 bg-white p-5">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-sand-700">{ws.workstream}</h3>
+      {/* Workstreams + Trend side by side */}
+      <div className="grid grid-cols-5 gap-5 mt-10">
+        {/* Workstreams — 3 cols */}
+        <div className="col-span-3 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+          <h2 className="font-display text-xl text-sand-800 mb-4">Workstreams</h2>
+          <div className="space-y-3">
+            {workstreamStats.map((ws: any) => {
+              const pct = ws.total > 0 ? Math.round((ws.done / ws.total) * 100) : 0
+              return (
+                <div key={ws.workstream} className="rounded-xl border border-sand-200 bg-white p-4 flex items-center gap-5">
+                  <div className="w-28 shrink-0">
+                    <h3 className="text-sm font-medium text-sand-700">{ws.workstream}</h3>
+                    <p className="text-xs text-sand-400 mt-0.5">{ws.done}/{ws.total} done</p>
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-2 rounded-full bg-sand-100 overflow-hidden">
+                      <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                  <span className="font-display text-lg text-sand-700 w-12 text-right">{pct}%</span>
                   {ws.blocked > 0 && (
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-brick bg-brick-light px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-semibold text-brick bg-brick-light px-2 py-0.5 rounded-full shrink-0">
                       {ws.blocked} blocked
                     </span>
                   )}
                 </div>
-                <div className="mt-3 flex items-end gap-3">
-                  <span className="font-display text-2xl text-sand-800">{pct}%</span>
-                  <span className="text-xs text-sand-400 mb-1">{ws.done}/{ws.total} tasks</span>
-                </div>
-                <div className="mt-2 h-1.5 rounded-full bg-sand-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-sage transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Blocker trend */}
-      <div className="mt-10 animate-fade-up" style={{ animationDelay: '0.15s' }}>
-        <h2 className="font-display text-xl text-sand-800">Blocker Trend</h2>
-        <div className="mt-4 rounded-xl border border-sand-200 bg-white p-5">
-          <div className="flex items-end gap-1 h-24">
-            {[...standups].reverse().map((s: any, i: number) => {
-              const total = s.blockers_count + s.at_risk_count
-              const maxH = 80
-              const h = Math.max(4, (total / 6) * maxH)
-              const isToday = i === standups.length - 1
-              return (
-                <div key={s.id} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className={`w-full max-w-[28px] rounded-t transition-all ${
-                      total === 0
-                        ? 'bg-sage/30'
-                        : total <= 2
-                          ? 'bg-amber-light'
-                          : 'bg-brick-light'
-                    } ${isToday ? 'ring-2 ring-amber-accent/40' : ''}`}
-                    style={{ height: `${h}px` }}
-                    title={`${new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${s.blockers_count} blockers, ${s.at_risk_count} at risk`}
-                  />
-                  <span className="text-[9px] text-sand-400">
-                    {new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', { day: 'numeric' })}
-                  </span>
-                </div>
               )
             })}
           </div>
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-sand-100">
-            <span className="flex items-center gap-1.5 text-[10px] text-sand-400">
-              <span className="w-2.5 h-2.5 rounded bg-sage/30" /> Clean
-            </span>
-            <span className="flex items-center gap-1.5 text-[10px] text-sand-400">
-              <span className="w-2.5 h-2.5 rounded bg-amber-light" /> Minor
-            </span>
-            <span className="flex items-center gap-1.5 text-[10px] text-sand-400">
-              <span className="w-2.5 h-2.5 rounded bg-brick-light" /> Elevated
-            </span>
+        </div>
+
+        {/* Blocker trend — 2 cols */}
+        <div className="col-span-2 animate-fade-up" style={{ animationDelay: '0.15s' }}>
+          <h2 className="font-display text-xl text-sand-800 mb-4">Blocker Trend</h2>
+          <div className="rounded-xl border border-sand-200 bg-white p-5 h-[calc(100%-2rem)]">
+            <div className="flex items-end gap-[3px] h-28">
+              {[...standups].reverse().map((s: any, i: number) => {
+                const total = s.blockers_count + s.at_risk_count
+                const h = Math.max(6, (total / 6) * 90)
+                const isLatest = i === standups.length - 1
+                return (
+                  <div key={s.id} className="flex-1 flex flex-col items-center gap-1">
+                    <div
+                      className={`w-full rounded-sm transition-all ${
+                        total === 0 ? 'bg-sage/20' : total <= 2 ? 'bg-amber-accent/25' : 'bg-brick/25'
+                      } ${isLatest ? 'ring-1 ring-amber-accent/50 ring-offset-1' : ''}`}
+                      style={{ height: `${h}px` }}
+                      title={`${formatMonthDay(s.date)}: ${s.blockers_count} blockers, ${s.at_risk_count} at risk`}
+                    />
+                    <span className="text-[8px] text-sand-400 tabular-nums">{formatDay(s.date)}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex items-center gap-3 mt-4 pt-3 border-t border-sand-100">
+              <Legend color="bg-sage/20" label="Clean" />
+              <Legend color="bg-amber-accent/25" label="Minor" />
+              <Legend color="bg-brick/25" label="Elevated" />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Recent briefs */}
       <div className="mt-10 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-xl text-sand-800">Recent Briefs</h2>
           <Link href="/standup/history" className="text-xs font-medium text-amber-accent hover:underline">
             View all &rarr;
           </Link>
         </div>
-        <div className="mt-4 space-y-2">
+        <div className="space-y-2">
           {standups.slice(0, 7).map((s: any) => (
             <Link
               key={s.id}
@@ -163,26 +132,10 @@ export default async function StandupOverview() {
               className="flex items-center justify-between rounded-xl border border-sand-200 bg-white px-5 py-3.5 hover:border-sand-300 hover:shadow-sm transition-all group"
             >
               <div className="flex items-center gap-4">
-                <time className="text-sm font-mono text-sand-500 w-28">
-                  {new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                <time className="text-sm font-mono text-sand-500 w-32 tabular-nums">
+                  {formatShortDate(s.date)}
                 </time>
-                <div className="flex items-center gap-2">
-                  {s.blockers_count > 0 && (
-                    <span className="text-[10px] font-semibold text-brick bg-brick-light px-2 py-0.5 rounded-full">
-                      {s.blockers_count} blocker{s.blockers_count !== 1 ? 's' : ''}
-                    </span>
-                  )}
-                  {s.at_risk_count > 0 && (
-                    <span className="text-[10px] font-semibold text-rust bg-amber-light px-2 py-0.5 rounded-full">
-                      {s.at_risk_count} at risk
-                    </span>
-                  )}
-                  {s.blockers_count === 0 && s.at_risk_count === 0 && (
-                    <span className="text-[10px] font-semibold text-sage bg-sage-light px-2 py-0.5 rounded-full">
-                      Clean
-                    </span>
-                  )}
-                </div>
+                <StatusBadges blockers={s.blockers_count} atRisk={s.at_risk_count} />
               </div>
               <span className="text-xs text-sand-400 group-hover:text-amber-accent transition-colors">
                 View briefs &rarr;
@@ -195,13 +148,45 @@ export default async function StandupOverview() {
   )
 }
 
-function StatCard({ label, value, detail, style }: { label: string; value: string; detail: string; style: number }) {
-  const border = style === 2 ? 'border-brick/20 bg-brick-light/30' : 'border-sand-200 bg-white'
+function StatCard({ label, value, detail, variant, delay }: {
+  label: string; value: string; detail: string; variant: string; delay: number
+}) {
+  const style = variant === 'danger' ? 'border-brick/20 bg-brick-light/30' : 'border-sand-200 bg-white'
   return (
-    <div className={`rounded-xl border p-5 ${border} animate-fade-up`}>
+    <div className={`rounded-xl border p-5 ${style} animate-fade-up`} style={{ animationDelay: `${delay * 0.05}s` }}>
       <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-sand-400">{label}</p>
       <p className="font-display text-3xl text-sand-800 mt-1">{value}</p>
       <p className="text-xs text-sand-500 mt-1">{detail}</p>
     </div>
+  )
+}
+
+function StatusBadges({ blockers, atRisk }: { blockers: number; atRisk: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      {blockers > 0 && (
+        <span className="text-[10px] font-semibold text-brick bg-brick-light px-2 py-0.5 rounded-full">
+          {blockers} blocker{blockers !== 1 ? 's' : ''}
+        </span>
+      )}
+      {atRisk > 0 && (
+        <span className="text-[10px] font-semibold text-rust bg-amber-light px-2 py-0.5 rounded-full">
+          {atRisk} at risk
+        </span>
+      )}
+      {blockers === 0 && atRisk === 0 && (
+        <span className="text-[10px] font-semibold text-sage bg-sage-light px-2 py-0.5 rounded-full">
+          Clean
+        </span>
+      )}
+    </div>
+  )
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5 text-[10px] text-sand-400">
+      <span className={`w-2.5 h-2.5 rounded ${color}`} /> {label}
+    </span>
   )
 }

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getSystemRunStats, getRecentStandups } from './lib/queries'
+import { formatMonthDay } from './lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,9 +63,7 @@ export default async function Home() {
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-sand-400">Latest</p>
               <p className="font-mono text-sm text-sand-500 mt-1">
-                {recentStandups[0]
-                  ? new Date(recentStandups[0].date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                  : '—'}
+                {recentStandups[0] ? formatMonthDay(recentStandups[0].date) : '—'}
               </p>
             </div>
           </div>

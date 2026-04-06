@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getStandupById } from '../../../lib/queries'
+import { formatLongDate } from '../../../lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,13 +9,6 @@ export default async function BriefView({ params }: { params: Promise<{ id: stri
   const { id } = await params
   const standup = await getStandupById(id)
   if (!standup) notFound()
-
-  const dateStr = new Date(standup.date + 'T12:00:00').toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 
   const runDuration = standup.started_at && standup.completed_at
     ? Math.round((new Date(standup.completed_at).getTime() - new Date(standup.started_at).getTime()) / 1000)
@@ -24,8 +18,8 @@ export default async function BriefView({ params }: { params: Promise<{ id: stri
     <div className="max-w-[1400px] mx-auto px-8 py-10">
       {/* Header */}
       <div className="animate-fade-up">
-        <Link href="/standup" className="text-xs font-medium text-sand-400 hover:text-amber-accent transition-colors">
-          &larr; Back to overview
+        <Link href="/standup" className="inline-flex items-center gap-1 text-xs font-medium text-sand-400 hover:text-amber-accent transition-colors">
+          <span>&larr;</span> Back to overview
         </Link>
         <div className="mt-4 flex items-end justify-between">
           <div>
@@ -35,114 +29,97 @@ export default async function BriefView({ params }: { params: Promise<{ id: stri
             <h1 className="font-display text-3xl text-sand-900 mt-1">
               Daily Standup
             </h1>
-            <p className="text-sand-500 mt-1 text-sm">{dateStr}</p>
+            <p className="text-sand-500 mt-1">{formatLongDate(standup.date)}</p>
           </div>
-          <div className="flex items-center gap-6 text-xs text-sand-400">
+
+          {/* Meta pills */}
+          <div className="flex items-center gap-3">
             {standup.blockers_count > 0 && (
-              <span className="text-brick font-semibold bg-brick-light px-3 py-1 rounded-full text-[11px]">
-                {standup.blockers_count} blocker{standup.blockers_count !== 1 ? 's' : ''}
-              </span>
+              <Pill variant="danger">{standup.blockers_count} blocker{standup.blockers_count !== 1 ? 's' : ''}</Pill>
             )}
             {standup.at_risk_count > 0 && (
-              <span className="text-rust font-semibold bg-amber-light px-3 py-1 rounded-full text-[11px]">
-                {standup.at_risk_count} at risk
-              </span>
+              <Pill variant="warning">{standup.at_risk_count} at risk</Pill>
             )}
-            {runDuration && (
-              <span className="font-mono">{runDuration}s runtime</span>
+            {standup.blockers_count === 0 && standup.at_risk_count === 0 && (
+              <Pill variant="success">Clean</Pill>
             )}
-            {standup.token_count && (
-              <span className="font-mono">{(standup.token_count / 1000).toFixed(1)}k tokens</span>
-            )}
-            {standup.tool_calls && (
-              <span className="font-mono">{standup.tool_calls} tool calls</span>
-            )}
+            {runDuration != null && <Pill variant="muted">{runDuration}s</Pill>}
+            {standup.token_count && <Pill variant="muted">{(standup.token_count / 1000).toFixed(1)}k tokens</Pill>}
+            {standup.tool_calls && <Pill variant="muted">{standup.tool_calls} tools</Pill>}
           </div>
         </div>
       </div>
 
-      {/* Three-panel brief comparison — the portfolio hero */}
+      {/* Three-panel brief comparison */}
       <div className="grid grid-cols-3 gap-5 mt-8">
         <BriefPanel
           audience="Team Lead"
-          subtitle="Tactical, task-level, every blocker"
+          subtitle="Tactical detail — every task, every blocker, names and dates"
           content={standup.team_brief}
-          accentColor="sage"
+          accent="sage"
           delay={0}
         />
         <BriefPanel
           audience="Executive"
-          subtitle="3-5 bullets, risks, decisions"
+          subtitle="Summary — 3-5 bullets, risks flagged, decisions needed"
           content={standup.exec_brief}
-          accentColor="amber"
+          accent="amber"
           delay={1}
         />
         <BriefPanel
           audience="Client"
-          subtitle="Narrative, milestones, no internals"
+          subtitle="Narrative — milestone language, no internal names"
           content={standup.client_brief}
-          accentColor="rust"
+          accent="rust"
           delay={2}
         />
       </div>
 
-      {/* Same data, three outputs callout */}
-      <div className="mt-8 text-center animate-fade-up" style={{ animationDelay: '0.4s' }}>
-        <p className="text-sm text-sand-400 italic">
-          Same data. Three audiences. Three different briefs. Generated in one agent loop.
+      {/* Tagline */}
+      <div className="mt-10 text-center animate-fade-up" style={{ animationDelay: '0.4s' }}>
+        <p className="inline-block text-sm text-sand-400 italic border-t border-b border-sand-200 py-3 px-8">
+          Same data &middot; Three audiences &middot; One agent loop
         </p>
       </div>
     </div>
   )
 }
 
-function BriefPanel({
-  audience,
-  subtitle,
-  content,
-  accentColor,
-  delay,
-}: {
-  audience: string
-  subtitle: string
-  content: string
-  accentColor: string
-  delay: number
-}) {
-  const accentMap: Record<string, { border: string; badge: string; badgeText: string; topBar: string }> = {
-    sage: {
-      border: 'border-sage/20',
-      badge: 'bg-sage-light',
-      badgeText: 'text-sage',
-      topBar: 'bg-sage',
-    },
-    amber: {
-      border: 'border-amber-accent/20',
-      badge: 'bg-amber-light',
-      badgeText: 'text-amber-accent',
-      topBar: 'bg-amber-accent',
-    },
-    rust: {
-      border: 'border-rust/20',
-      badge: 'bg-amber-light',
-      badgeText: 'text-rust',
-      topBar: 'bg-rust',
-    },
+function Pill({ variant, children }: { variant: 'danger' | 'warning' | 'success' | 'muted'; children: React.ReactNode }) {
+  const styles = {
+    danger: 'text-brick bg-brick-light',
+    warning: 'text-rust bg-amber-light',
+    success: 'text-sage bg-sage-light',
+    muted: 'text-sand-500 bg-sand-100',
   }
+  return (
+    <span className={`text-[11px] font-semibold px-3 py-1 rounded-full ${styles[variant]}`}>
+      {children}
+    </span>
+  )
+}
 
-  const a = accentMap[accentColor] ?? accentMap.sage
+function BriefPanel({ audience, subtitle, content, accent, delay }: {
+  audience: string; subtitle: string; content: string; accent: string; delay: number
+}) {
+  const accents: Record<string, { bar: string; badge: string; badgeText: string; border: string }> = {
+    sage: { bar: 'bg-sage', badge: 'bg-sage-light', badgeText: 'text-sage', border: 'border-sage/15' },
+    amber: { bar: 'bg-amber-accent', badge: 'bg-amber-light', badgeText: 'text-amber-accent', border: 'border-amber-accent/15' },
+    rust: { bar: 'bg-rust', badge: 'bg-amber-light', badgeText: 'text-rust', border: 'border-rust/15' },
+  }
+  const a = accents[accent] ?? accents.sage
 
-  // Convert markdown-ish content to basic HTML
   const html = content
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/^- (.*)/gm, '<li>$1</li>')
-    .replace(/^(#{1,3}) (.*)/gm, (_, hashes: string, text: string) => {
-      const level = hashes.length
-      return `<h${level + 1} class="font-display text-sand-800 mt-4 mb-2 ${level === 1 ? 'text-lg' : 'text-base'}">${text}</h${level + 1}>`
+    .replace(/^(#{1,3}) (.*)/gm, (_: string, hashes: string, text: string) => {
+      const lvl = hashes.length
+      const size = lvl === 1 ? 'text-base' : 'text-sm'
+      return `<h${lvl + 1} class="font-display text-sand-800 mt-4 mb-1.5 ${size}">${text}</h${lvl + 1}>`
     })
-    .replace(/(<li>.*<\/li>\n?)+/g, (match: string) => `<ul class="space-y-1 my-2">${match}</ul>`)
+    .replace(/(<li>.*<\/li>\n?)+/g, (m: string) => `<ul class="space-y-0.5 my-2">${m}</ul>`)
     .split('\n\n')
-    .map((p: string) => (p.startsWith('<') ? p : `<p class="mb-3">${p}</p>`))
+    .map((p: string) => p.startsWith('<') ? p : `<p class="mb-2.5">${p}</p>`)
     .join('')
 
   return (
@@ -150,23 +127,18 @@ function BriefPanel({
       className={`rounded-xl border ${a.border} bg-white overflow-hidden flex flex-col animate-fade-up`}
       style={{ animationDelay: `${0.1 + delay * 0.1}s` }}
     >
-      {/* Color top bar */}
-      <div className={`h-1 ${a.topBar}`} />
-
-      {/* Header */}
-      <div className="px-5 pt-4 pb-3 border-b border-sand-100">
-        <div className="flex items-center justify-between">
+      <div className={`h-1 ${a.bar}`} />
+      <div className="px-5 pt-4 pb-3 border-b border-sand-100 flex items-center justify-between">
+        <div>
           <h2 className="font-display text-lg text-sand-800">{audience}</h2>
-          <span className={`text-[10px] font-semibold uppercase tracking-wider ${a.badgeText} ${a.badge} px-2.5 py-1 rounded-full`}>
-            {audience.split(' ')[0]}
-          </span>
+          <p className="text-[11px] text-sand-400 mt-0.5 max-w-[240px]">{subtitle}</p>
         </div>
-        <p className="text-[11px] text-sand-400 mt-0.5">{subtitle}</p>
+        <span className={`text-[10px] font-semibold uppercase tracking-wider ${a.badgeText} ${a.badge} px-2.5 py-1 rounded-full`}>
+          {audience.split(' ')[0]}
+        </span>
       </div>
-
-      {/* Content */}
       <div
-        className="px-5 py-4 text-[13px] leading-relaxed text-sand-700 brief-content flex-1 overflow-y-auto max-h-[600px]"
+        className="px-5 py-4 text-[13px] leading-relaxed text-sand-600 brief-content flex-1 overflow-y-auto max-h-[600px]"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>
