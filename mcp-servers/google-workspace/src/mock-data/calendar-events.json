@@ -1,0 +1,30 @@
+[
+  {
+    "title": "Meridian Daily Standup",
+    "start": "2026-04-06T09:00:00-04:00",
+    "end": "2026-04-06T09:15:00-04:00",
+    "attendees": ["Priya", "Sarah", "Marcus", "Jordan", "Alex", "Chen"],
+    "location": "Zoom"
+  },
+  {
+    "title": "Client Design Review — Meridian",
+    "start": "2026-04-06T14:00:00-04:00",
+    "end": "2026-04-06T15:00:00-04:00",
+    "attendees": ["Sarah", "Priya"],
+    "location": "Google Meet"
+  },
+  {
+    "title": "Sprint 3 Planning",
+    "start": "2026-04-07T10:00:00-04:00",
+    "end": "2026-04-07T11:30:00-04:00",
+    "attendees": ["Priya", "Sarah", "Marcus", "Jordan", "Alex", "Chen"],
+    "location": "Conference Room B"
+  },
+  {
+    "title": "QA Review — Dashboard Integration",
+    "start": "2026-04-07T14:00:00-04:00",
+    "end": "2026-04-07T14:45:00-04:00",
+    "attendees": ["Chen", "Jordan", "Marcus"],
+    "location": "Zoom"
+  }
+]
