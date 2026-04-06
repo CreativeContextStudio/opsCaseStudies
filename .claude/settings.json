@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "project-db": {
+      "command": "npx",
+      "args": [
+        "dotenv", "-e", "/Users/rusty/Developer/astroLab/caseStudies/standUp/.env.local",
+        "--", "npx", "tsx",
+        "/Users/rusty/Developer/astroLab/caseStudies/standUp/mcp-servers/project-db/src/index.ts"
+      ],
+      "cwd": "/Users/rusty/Developer/astroLab/caseStudies/standUp/mcp-servers/project-db"
+    },
+    "google-workspace": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "/Users/rusty/Developer/astroLab/caseStudies/standUp/mcp-servers/google-workspace/src/index.ts"
+      ],
+      "cwd": "/Users/rusty/Developer/astroLab/caseStudies/standUp/mcp-servers/google-workspace",
+      "env": {
+        "GOOGLE_MOCK_MODE": "true"
+      }
+    },
+    "git-reader": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "/Users/rusty/Developer/astroLab/caseStudies/standUp/mcp-servers/git-reader/src/index.ts"
+      ],
+      "cwd": "/Users/rusty/Developer/astroLab/caseStudies/standUp/mcp-servers/git-reader"
+    }
+  }
+}
