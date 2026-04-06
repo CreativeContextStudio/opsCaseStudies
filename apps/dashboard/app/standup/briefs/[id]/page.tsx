@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getStandupById } from '../../../lib/queries'
-import { formatLongDate, formatMonthDay } from '../../../lib/format'
+import { formatLongDate } from '../../../lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,105 +15,71 @@ export default async function BriefView({ params }: { params: Promise<{ id: stri
     : null
 
   return (
-    <div className="max-w-5xl mx-auto px-12 pt-12 pb-24">
-      {/* Back */}
-      <Link href="/standup" className="label text-outline hover:text-ink transition-colors inline-block mb-12">
-        &larr; Back to Overview
-      </Link>
-
-      {/* Brief Header — editorial masthead */}
-      <div className="mb-24 animate-fade-up">
-        <h1 className="font-headline text-7xl font-bold text-ink tracking-tight leading-none">
-          {standup.project_name}
-        </h1>
-        <div className="flex justify-between items-end mt-4">
-          <p className="label text-secondary italic">
-            Volume {Math.floor(Math.random() * 30 + 1)} // Issue {String(standup.blockers_count + standup.at_risk_count + 3).padStart(2, '0')}
-          </p>
-          <p className="font-headline italic text-3xl text-ink-container">
-            {formatLongDate(standup.date)}
-          </p>
+    <div className="max-w-[1400px] mx-auto px-8 py-10">
+      {/* Header */}
+      <div className="animate-fade-up">
+        <Link href="/standup" className="label text-[9px] text-outline hover:text-ink transition-colors">
+          &larr; Back to overview
+        </Link>
+        <div className="mt-4 flex items-end justify-between">
+          <div>
+            <p className="label text-[9px] text-secondary italic">{standup.project_name}</p>
+            <h1 className="font-headline text-3xl font-bold text-ink mt-1 tracking-tight">
+              Daily Standup
+            </h1>
+            <p className="font-body text-on-surface-variant mt-1">{formatLongDate(standup.date)}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {standup.blockers_count > 0 && <Pill variant="error">{standup.blockers_count} blocker{standup.blockers_count !== 1 ? 's' : ''}</Pill>}
+            {standup.at_risk_count > 0 && <Pill variant="warn">{standup.at_risk_count} at risk</Pill>}
+            {standup.blockers_count === 0 && standup.at_risk_count === 0 && <Pill variant="neutral">Clean</Pill>}
+            {runDuration != null && <Pill variant="muted">{runDuration}s</Pill>}
+            {standup.token_count && <Pill variant="muted">{(standup.token_count / 1000).toFixed(1)}k tokens</Pill>}
+            {standup.tool_calls && <Pill variant="muted">{standup.tool_calls} tools</Pill>}
+          </div>
         </div>
       </div>
 
-      {/* Agent Performance Strip */}
-      <div className="flex items-center gap-12 mb-20 pb-6 border-b border-outline-variant/10 animate-fade-up" style={{ animationDelay: '0.05s' }}>
-        <MetaItem label="Runtime" value={runDuration ? `${runDuration}s` : '—'} />
-        <MetaItem label="Tokens" value={standup.token_count ? `${(standup.token_count / 1000).toFixed(1)}k` : '—'} />
-        <MetaItem label="Tool Calls" value={standup.tool_calls ? String(standup.tool_calls) : '—'} />
-        <MetaItem label="Blockers" value={String(standup.blockers_count)} highlight={standup.blockers_count > 0} />
-        <MetaItem label="At Risk" value={String(standup.at_risk_count)} highlight={standup.at_risk_count > 0} />
-        <div className="ml-auto">
-          <span className="label text-[9px] text-outline">
-            Automated by Claude Agent &middot; Zero human input
-          </span>
-        </div>
+      {/* Three-panel brief comparison — THE HERO */}
+      <div className="grid grid-cols-3 gap-5 mt-8">
+        <BriefPanel audience="Team Lead" subtitle="Tactical — every task, every blocker, names and dates" content={standup.team_brief} accent="ink" delay={0} />
+        <BriefPanel audience="Executive" subtitle="Summary — 3-5 bullets, risks flagged, decisions needed" content={standup.exec_brief} accent="secondary" delay={1} />
+        <BriefPanel audience="Client" subtitle="Narrative — milestone language, no internal names" content={standup.client_brief} accent="outline" delay={2} />
       </div>
 
-      {/* Three Briefs — Editorial Panels */}
-      <div className="flex flex-col gap-32">
-        <BriefSection
-          audience="Team Lead"
-          subtitle="Tactical, task-level. Every blocker, every name, every action item."
-          content={standup.team_brief}
-          delay={0.1}
-        />
-        <BriefSection
-          audience="Executive"
-          subtitle="Strategic summary. 3-5 bullets, risks flagged, decisions needed."
-          content={standup.exec_brief}
-          delay={0.15}
-        />
-        <BriefSection
-          audience="Client"
-          subtitle="Progress narrative. Milestone language, no internal names."
-          content={standup.client_brief}
-          delay={0.2}
-        />
-      </div>
-
-      {/* How This Brief Was Generated */}
-      <div className="mt-32 pt-12 border-t border-outline-variant/10 animate-fade-up" style={{ animationDelay: '0.3s' }}>
-        <h2 className="label mb-8">How This Brief Was Generated</h2>
-        <div className="grid grid-cols-12 gap-16">
-          <div className="col-span-7">
-            <h3 className="font-headline text-2xl text-ink mb-4">The Agent Loop</h3>
+      {/* How this was generated */}
+      <div className="mt-12 bg-surface-low p-8 animate-fade-up" style={{ animationDelay: '0.3s' }}>
+        <p className="label text-[9px] mb-6">How This Brief Was Generated</p>
+        <div className="grid grid-cols-2 gap-12">
+          <div>
+            <h3 className="font-headline text-xl font-bold text-ink mb-3">The Agent Loop</h3>
             <p className="font-body text-sm text-on-surface-variant leading-relaxed">
-              A Claude agent ran at 6:00 AM, called {standup.tool_calls ?? 8} MCP tools across
-              3 servers (Task DB, Google Workspace, Git), analyzed the combined data for
-              blockers, capacity issues, and dependency chains, then generated three
-              audience-specific briefs — all in {runDuration ?? 45} seconds with zero human input.
+              A Claude agent called {standup.tool_calls ?? 8} MCP tools across 3 servers
+              (Task DB, Google Workspace, Git), analyzed the combined data for blockers,
+              capacity issues, and dependency chains, then generated three audience-specific
+              briefs in {runDuration ?? 45} seconds with zero human input.
             </p>
-            <div className="flex flex-col gap-4 mt-8">
-              <SourceRow label="Task Database" detail={`Queried all active tasks, identified ${standup.blockers_count} blockers and ${standup.at_risk_count} at-risk items`} />
-              <SourceRow label="Google Drive" detail="Scanned recent file edits, comments, and design review activity" />
-              <SourceRow label="Google Calendar" detail="Checked today and tomorrow's meetings for scheduling context" />
+            <div className="flex flex-col gap-3 mt-6">
+              <SourceRow label="Task Database" detail={`Identified ${standup.blockers_count} blockers and ${standup.at_risk_count} at-risk items`} />
+              <SourceRow label="Google Drive" detail="Scanned file edits, comments, and design review activity" />
+              <SourceRow label="Google Calendar" detail="Checked today and tomorrow for scheduling context" />
               <SourceRow label="GitHub" detail="Pulled recent commits and open PRs to detect stalled work" />
             </div>
           </div>
-          <div className="col-span-5">
-            <h3 className="font-headline text-2xl text-ink mb-4">Audience Decisions</h3>
-            <div className="flex flex-col gap-6">
-              <DecisionCard
-                audience="Team Lead"
-                decisions={['Included all assignee names', 'Listed every task status change', '@-mentioned blocked assignees']}
-              />
-              <DecisionCard
-                audience="Executive"
-                decisions={['Omitted task-level noise', 'Flagged capacity risk by name', 'Included decision with suggested owner']}
-              />
-              <DecisionCard
-                audience="Client"
-                decisions={['Removed all internal names', 'Converted blockers to milestone language', 'Framed delays as "monitoring timeline"']}
-              />
+          <div>
+            <h3 className="font-headline text-xl font-bold text-ink mb-3">Audience Decisions</h3>
+            <div className="flex flex-col gap-4">
+              <DecisionBlock audience="Team Lead" items={['Included all assignee names', 'Listed every task status change', '@-mentioned blocked assignees']} />
+              <DecisionBlock audience="Executive" items={['Omitted task-level noise', 'Flagged capacity risk by name', 'Included decision with suggested owner']} />
+              <DecisionBlock audience="Client" items={['Removed all internal names', 'Converted blockers to milestone language', 'Framed delays as "monitoring timeline"']} />
             </div>
           </div>
         </div>
       </div>
 
       {/* Tagline */}
-      <div className="mt-24 text-center animate-fade-up" style={{ animationDelay: '0.35s' }}>
-        <p className="font-headline italic text-2xl text-outline-variant/60 select-none tracking-tight">
+      <div className="mt-10 text-center animate-fade-up" style={{ animationDelay: '0.35s' }}>
+        <p className="font-headline italic text-xl text-outline-variant/50 tracking-tight">
           Same data &middot; Three audiences &middot; One agent loop
         </p>
       </div>
@@ -121,41 +87,45 @@ export default async function BriefView({ params }: { params: Promise<{ id: stri
   )
 }
 
-function MetaItem({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
-  return (
-    <div>
-      <span className="label block text-[9px]">{label}</span>
-      <span className={`font-headline text-xl font-bold ${highlight ? 'text-error' : 'text-ink'}`}>{value}</span>
-    </div>
-  )
+function Pill({ variant, children }: { variant: 'error' | 'warn' | 'neutral' | 'muted'; children: React.ReactNode }) {
+  const styles = {
+    error: 'text-error bg-error/8',
+    warn: 'text-secondary bg-chip/30',
+    neutral: 'text-ink/50 bg-surface-highest/50',
+    muted: 'text-outline bg-surface-low',
+  }
+  return <span className={`label text-[9px] px-3 py-1 ${styles[variant]}`}>{children}</span>
 }
 
-function BriefSection({ audience, subtitle, content, delay }: {
-  audience: string; subtitle: string; content: string; delay: number
+function BriefPanel({ audience, subtitle, content, accent, delay }: {
+  audience: string; subtitle: string; content: string; accent: string; delay: number
 }) {
+  const barColor = accent === 'ink' ? 'bg-ink' : accent === 'secondary' ? 'bg-secondary' : 'bg-outline'
+
   const html = content
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/^- (.*)/gm, '<li>$1</li>')
     .replace(/^(#{1,3}) (.*)/gm, (_: string, h: string, t: string) => {
       const lvl = h.length
-      return `<h${lvl + 1} class="font-headline text-ink mt-6 mb-2 ${lvl === 1 ? 'text-xl font-bold' : 'text-lg'}">${t}</h${lvl + 1}>`
+      return `<h${lvl + 1} class="font-headline text-ink mt-4 mb-1.5 ${lvl === 1 ? 'text-base font-bold' : 'text-sm font-bold'}">${t}</h${lvl + 1}>`
     })
-    .replace(/(<li>.*<\/li>\n?)+/g, (m: string) => `<ul class="space-y-1 my-3">${m}</ul>`)
+    .replace(/(<li>.*<\/li>\n?)+/g, (m: string) => `<ul class="space-y-0.5 my-2">${m}</ul>`)
     .split('\n\n')
-    .map((p: string) => p.startsWith('<') ? p : `<p class="mb-3">${p}</p>`)
+    .map((p: string) => p.startsWith('<') ? p : `<p class="mb-2.5">${p}</p>`)
     .join('')
 
   return (
-    <div className="animate-fade-up" style={{ animationDelay: `${delay}s` }}>
-      <div className="flex items-end justify-between mb-6 pb-2 border-b border-outline-variant/10">
+    <div className="bg-surface-lowest flex flex-col animate-fade-up shadow-ambient" style={{ animationDelay: `${0.1 + delay * 0.08}s` }}>
+      <div className={`h-[3px] ${barColor}`} />
+      <div className="px-5 pt-4 pb-3 border-b border-outline-variant/10 flex items-center justify-between">
         <div>
-          <h2 className="font-headline text-4xl font-bold text-ink">{audience}</h2>
-          <p className="label text-[9px] text-secondary mt-1">{subtitle}</p>
+          <h2 className="font-headline text-lg font-bold text-ink">{audience}</h2>
+          <p className="label text-[8px] text-outline mt-0.5">{subtitle}</p>
         </div>
-        <span className="label text-[9px] text-outline-variant">{audience.toUpperCase()} BRIEF</span>
+        <span className="label text-[8px] text-outline-variant">{audience.split(' ')[0].toUpperCase()}</span>
       </div>
       <div
-        className="font-headline text-xl leading-relaxed text-on-surface brief-content max-w-3xl"
+        className="px-5 py-4 text-[13px] leading-relaxed text-on-surface-variant brief-content flex-1 overflow-y-auto max-h-[600px]"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>
@@ -164,24 +134,22 @@ function BriefSection({ audience, subtitle, content, delay }: {
 
 function SourceRow({ label, detail }: { label: string; detail: string }) {
   return (
-    <div className="flex gap-4 items-start">
-      <span className="w-2 h-2 bg-ink mt-1.5 shrink-0" />
+    <div className="flex gap-3 items-start">
+      <span className="w-1.5 h-1.5 bg-ink mt-1.5 shrink-0" />
       <div>
         <span className="label text-[9px] text-ink block">{label}</span>
-        <span className="font-body text-sm text-on-surface-variant">{detail}</span>
+        <span className="font-body text-xs text-on-surface-variant">{detail}</span>
       </div>
     </div>
   )
 }
 
-function DecisionCard({ audience, decisions }: { audience: string; decisions: string[] }) {
+function DecisionBlock({ audience, items }: { audience: string; items: string[] }) {
   return (
-    <div className="bg-surface-low p-6">
-      <span className="label text-[9px] text-ink block mb-3">{audience}</span>
-      {decisions.map((d, i) => (
-        <p key={i} className="font-body text-sm text-on-surface-variant leading-relaxed">
-          — {d}
-        </p>
+    <div className="bg-surface-highest/30 p-4">
+      <span className="label text-[9px] text-ink block mb-2">{audience}</span>
+      {items.map((d, i) => (
+        <p key={i} className="font-body text-xs text-on-surface-variant">— {d}</p>
       ))}
     </div>
   )

@@ -1,11 +1,10 @@
 import { neon } from '@neondatabase/serverless'
 
-// Single connection per request cycle — avoids creating a new WebSocket per query
+// Single connection per request cycle
 let _sql: ReturnType<typeof neon> | null = null
 
 function sql() {
   if (!_sql) {
-    // fetchOptions with IPv4 preference to avoid Neon IPv6 timeout issues
     _sql = neon(process.env.DATABASE_URL!, {
       fetchOptions: { cache: 'no-store' },
     })
@@ -13,9 +12,14 @@ function sql() {
   return _sql
 }
 
-export async function getRecentStandups(limit = 14) {
+// Wrapper that always returns any[] to avoid Neon's strict union return type
+async function query(strings: TemplateStringsArray, ...values: any[]): Promise<any[]> {
   const q = sql()
-  return q`
+  return q(strings, ...values) as any
+}
+
+export async function getRecentStandups(limit = 14) {
+  return query`
     SELECT sh.*, sr.token_count, sr.tool_calls, sr.status as run_status
     FROM standup.standup_history sh
     LEFT JOIN public.system_runs sr ON sh.run_id = sr.id
@@ -26,8 +30,7 @@ export async function getRecentStandups(limit = 14) {
 }
 
 export async function getStandupById(id: string) {
-  const q = sql()
-  const [row] = await q`
+  const rows = await query`
     SELECT sh.*, sr.token_count, sr.tool_calls, sr.started_at, sr.completed_at, sr.status as run_status,
            p.name as project_name
     FROM standup.standup_history sh
@@ -35,18 +38,16 @@ export async function getStandupById(id: string) {
     LEFT JOIN public.projects p ON sh.project_id = p.id
     WHERE sh.id = ${id}
   `
-  return row ?? null
+  return rows[0] ?? null
 }
 
 export async function getActiveProject() {
-  const q = sql()
-  const [row] = await q`SELECT * FROM public.projects WHERE active = true LIMIT 1`
-  return row ?? null
+  const rows = await query`SELECT * FROM public.projects WHERE active = true LIMIT 1`
+  return rows[0] ?? null
 }
 
 export async function getTaskStats(projectId: string) {
-  const q = sql()
-  return q`
+  return query`
     SELECT
       status,
       count(*)::int as count,
@@ -58,8 +59,7 @@ export async function getTaskStats(projectId: string) {
 }
 
 export async function getWorkstreamStats(projectId: string) {
-  const q = sql()
-  return q`
+  return query`
     SELECT
       workstream,
       count(*)::int as total,
@@ -73,8 +73,7 @@ export async function getWorkstreamStats(projectId: string) {
 }
 
 export async function getSystemRunStats() {
-  const q = sql()
-  const [row] = await q`
+  const rows = await query`
     SELECT
       count(*)::int as total_runs,
       count(*) FILTER (WHERE status = 'success')::int as successful,
@@ -83,5 +82,5 @@ export async function getSystemRunStats() {
     FROM public.system_runs
     WHERE module = 'standup'
   `
-  return row
+  return rows[0]
 }
