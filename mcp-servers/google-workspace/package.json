@@ -1,0 +1,19 @@
+{
+  "name": "@astrolab/mcp-google-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1",
+    "googleapis": "^144",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "tsx": "^4",
+    "typescript": "^5.7"
+  }
+}

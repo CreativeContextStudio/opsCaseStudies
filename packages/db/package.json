@@ -1,0 +1,30 @@
+{
+  "name": "@astrolab/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./schema": "./src/schema/index.ts",
+    "./schema/shared": "./src/schema/shared.ts",
+    "./schema/standup": "./src/schema/standup.ts"
+  },
+  "scripts": {
+    "db:push": "dotenv -e ../../.env.local -- drizzle-kit push",
+    "db:generate": "dotenv -e ../../.env.local -- drizzle-kit generate",
+    "db:migrate": "dotenv -e ../../.env.local -- drizzle-kit migrate",
+    "db:seed": "dotenv -e ../../.env.local -- tsx ../../scripts/seed.ts",
+    "db:studio": "dotenv -e ../../.env.local -- drizzle-kit studio"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "drizzle-orm": "^0.39"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8",
+    "drizzle-kit": "^0.30",
+    "tsx": "^4",
+    "typescript": "^5.7"
+  }
+}
