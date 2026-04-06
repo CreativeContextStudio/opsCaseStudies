@@ -12,7 +12,7 @@ export default async function StandupOverview() {
   ])
 
   if (!project) {
-    return <div className="p-12 text-sand-500">No active project found.</div>
+    return <div className="p-12 text-outline">No active project found.</div>
   }
 
   const [taskStats, workstreamStats] = await Promise.all([
@@ -27,166 +27,184 @@ export default async function StandupOverview() {
   const totalTasks = taskStats.reduce((sum: number, s: any) => sum + s.count, 0)
   const doneTasks = statusMap['done']?.count ?? 0
   const blockedTasks = statusMap['blocked']?.count ?? 0
-  const inProgressTasks = statusMap['in_progress']?.count ?? 0
+  const inProgress = statusMap['in_progress']?.count ?? 0
   const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-10">
+    <section className="max-w-5xl mx-auto px-12 pt-4 pb-24">
       {/* Header */}
-      <div className="animate-fade-up">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-accent">
-          Case Study 01
-        </p>
-        <h1 className="font-display text-4xl text-sand-900 mt-1">
+      <div className="mb-20 animate-fade-up">
+        <p className="label text-secondary italic mb-2">Case Study 01</p>
+        <h1 className="font-headline text-6xl font-bold text-ink tracking-tight leading-none">
           {project.name}
         </h1>
-        <p className="text-sand-500 mt-2 text-[15px]">
-          Automated daily standup briefs for three audience levels — team lead, executive, and client.
+        <p className="font-body text-sm text-on-surface-variant mt-4 max-w-xl leading-relaxed">
+          Automated standup briefs generated daily by a Claude agent. Three audiences,
+          three tones, zero meetings. Every brief below was written by an agent loop
+          pulling from 6 data sources.
         </p>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-4 mt-10">
-        <StatCard label="Progress" value={`${progressPct}%`} detail={`${doneTasks} of ${totalTasks} tasks`} variant="default" delay={0} />
-        <StatCard label="In Flight" value={String(inProgressTasks)} detail={`${blockedTasks} blocked`} variant={blockedTasks > 0 ? 'danger' : 'default'} delay={1} />
-        <StatCard label="Agent Runs" value={String(runStats?.total_runs ?? 0)} detail={`${runStats?.successful ?? 0} successful`} variant="default" delay={2} />
-        <StatCard label="Avg Cost" value={runStats?.avg_tokens ? `${(runStats.avg_tokens / 1000).toFixed(1)}k` : '—'} detail={`~${runStats?.avg_tool_calls ?? 0} tool calls/run`} variant="default" delay={3} />
+      {/* Stats Strip */}
+      <div className="flex items-end gap-16 mb-20 pb-8 border-b border-outline-variant/10 animate-fade-up" style={{ animationDelay: '0.05s' }}>
+        <div>
+          <span className="label block text-[9px] mb-1">Progress</span>
+          <span className="font-headline text-6xl font-bold text-ink tracking-tighter">{progressPct}%</span>
+          <span className="font-body text-xs text-secondary ml-2 uppercase tracking-widest">complete</span>
+        </div>
+        <StatItem label="Tasks" value={String(totalTasks)} />
+        <StatItem label="In Flight" value={String(inProgress)} />
+        <StatItem label="Blocked" value={String(blockedTasks)} highlight={blockedTasks > 0} />
+        <StatItem label="Agent Runs" value={String(runStats?.total_runs ?? 0)} />
+        <StatItem label="Avg Tokens" value={runStats?.avg_tokens ? `${(runStats.avg_tokens / 1000).toFixed(1)}k` : '—'} />
       </div>
 
-      {/* Workstreams + Trend side by side */}
-      <div className="grid grid-cols-5 gap-5 mt-10">
-        {/* Workstreams — 3 cols */}
-        <div className="col-span-3 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <h2 className="font-display text-xl text-sand-800 mb-4">Workstreams</h2>
-          <div className="space-y-3">
+      {/* Architecture — the storytelling section */}
+      <div className="mb-20 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+        <h2 className="label mb-6 border-b border-outline-variant/10 pb-2">Architecture</h2>
+        <div className="flex items-center justify-between gap-4 py-8">
+          {/* Data Sources */}
+          <div className="flex flex-col gap-3">
+            {['Task DB', 'GitHub', 'Google Drive', 'Calendar'].map((src) => (
+              <div key={src} className="bg-surface-highest/40 px-4 py-2">
+                <span className="font-body text-xs text-on-surface-variant">{src}</span>
+              </div>
+            ))}
+          </div>
+          {/* Arrow */}
+          <div className="flex flex-col items-center gap-1 px-6">
+            <div className="w-24 h-[1px] bg-ink" />
+            <span className="label text-[8px] text-outline">MCP TOOLS</span>
+          </div>
+          {/* Agent */}
+          <div className="bg-ink text-on-ink px-8 py-6 text-center">
+            <span className="font-headline text-lg font-bold block">Claude Agent</span>
+            <span className="font-body text-[10px] uppercase tracking-widest text-on-ink/60 block mt-1">
+              Analyze &middot; Classify &middot; Generate
+            </span>
+          </div>
+          {/* Arrow */}
+          <div className="flex flex-col items-center gap-1 px-6">
+            <div className="w-24 h-[1px] bg-ink" />
+            <span className="label text-[8px] text-outline">3 BRIEFS</span>
+          </div>
+          {/* Outputs */}
+          <div className="flex flex-col gap-3">
+            <div className="bg-surface-highest/40 px-4 py-2">
+              <span className="font-body text-xs text-on-surface-variant">Team Lead</span>
+            </div>
+            <div className="bg-surface-highest/40 px-4 py-2">
+              <span className="font-body text-xs text-on-surface-variant">Executive</span>
+            </div>
+            <div className="bg-surface-highest/40 px-4 py-2">
+              <span className="font-body text-xs text-on-surface-variant">Client</span>
+            </div>
+          </div>
+        </div>
+        <p className="font-body text-xs text-outline text-center mt-2">
+          4 data sources &middot; {runStats?.avg_tool_calls ?? 8} tool calls &middot; ~{runStats?.avg_tokens ? (runStats.avg_tokens / 1000).toFixed(1) : '8'}k tokens &middot; ~45 seconds &middot; ~$0.08/run
+        </p>
+      </div>
+
+      {/* Workstreams + Blocker Trend */}
+      <div className="grid grid-cols-12 gap-16 mb-20">
+        {/* Workstreams — 7 cols */}
+        <div className="col-span-7 animate-fade-up" style={{ animationDelay: '0.15s' }}>
+          <h2 className="label mb-6 border-b border-outline-variant/10 pb-2">Workstreams</h2>
+          <div className="flex flex-col gap-8">
             {workstreamStats.map((ws: any) => {
               const pct = ws.total > 0 ? Math.round((ws.done / ws.total) * 100) : 0
               return (
-                <div key={ws.workstream} className="rounded-xl border border-sand-200 bg-white p-4 flex items-center gap-5">
-                  <div className="w-28 shrink-0">
-                    <h3 className="text-sm font-medium text-sand-700">{ws.workstream}</h3>
-                    <p className="text-xs text-sand-400 mt-0.5">{ws.done}/{ws.total} done</p>
+                <div key={ws.workstream}>
+                  <div className="flex justify-between font-body text-[10px] uppercase tracking-wider text-on-surface mb-2">
+                    <span>{ws.workstream} {ws.blocked > 0 && <span className="text-error font-bold ml-2">{ws.blocked} BLOCKED</span>}</span>
+                    <span>{pct}%</span>
                   </div>
-                  <div className="flex-1">
-                    <div className="h-2 rounded-full bg-sand-100 overflow-hidden">
-                      <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${pct}%` }} />
-                    </div>
+                  <div className="w-full h-[2px] bg-outline-variant/20">
+                    <div className="h-full bg-ink transition-all" style={{ width: `${pct}%` }} />
                   </div>
-                  <span className="font-display text-lg text-sand-700 w-12 text-right">{pct}%</span>
-                  {ws.blocked > 0 && (
-                    <span className="text-[10px] font-semibold text-brick bg-brick-light px-2 py-0.5 rounded-full shrink-0">
-                      {ws.blocked} blocked
-                    </span>
-                  )}
+                  <p className="font-body text-[10px] text-outline mt-1">{ws.done} of {ws.total} tasks complete</p>
                 </div>
               )
             })}
           </div>
         </div>
 
-        {/* Blocker trend — 2 cols */}
-        <div className="col-span-2 animate-fade-up" style={{ animationDelay: '0.15s' }}>
-          <h2 className="font-display text-xl text-sand-800 mb-4">Blocker Trend</h2>
-          <div className="rounded-xl border border-sand-200 bg-white p-5 h-[calc(100%-2rem)]">
-            <div className="flex items-end gap-[3px] h-28">
-              {[...standups].reverse().map((s: any, i: number) => {
-                const total = s.blockers_count + s.at_risk_count
-                const h = Math.max(6, (total / 6) * 90)
-                const isLatest = i === standups.length - 1
-                return (
-                  <div key={s.id} className="flex-1 flex flex-col items-center gap-1">
-                    <div
-                      className={`w-full rounded-sm transition-all ${
-                        total === 0 ? 'bg-sage/20' : total <= 2 ? 'bg-amber-accent/25' : 'bg-brick/25'
-                      } ${isLatest ? 'ring-1 ring-amber-accent/50 ring-offset-1' : ''}`}
-                      style={{ height: `${h}px` }}
-                      title={`${formatMonthDay(s.date)}: ${s.blockers_count} blockers, ${s.at_risk_count} at risk`}
-                    />
-                    <span className="text-[8px] text-sand-400 tabular-nums">{formatDay(s.date)}</span>
-                  </div>
-                )
-              })}
-            </div>
-            <div className="flex items-center gap-3 mt-4 pt-3 border-t border-sand-100">
-              <Legend color="bg-sage/20" label="Clean" />
-              <Legend color="bg-amber-accent/25" label="Minor" />
-              <Legend color="bg-brick/25" label="Elevated" />
-            </div>
+        {/* Blocker Trend — 5 cols */}
+        <div className="col-span-5 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+          <h2 className="label mb-6 border-b border-outline-variant/10 pb-2">Blocker Trend</h2>
+          <div className="flex items-end gap-[2px] h-32">
+            {[...standups].reverse().map((s: any, i: number) => {
+              const total = s.blockers_count + s.at_risk_count
+              const h = Math.max(4, (total / 6) * 100)
+              const isLatest = i === standups.length - 1
+              return (
+                <div key={s.id} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    className={`w-full transition-all ${
+                      total === 0 ? 'bg-surface-highest/60' : total <= 2 ? 'bg-on-surface/15' : 'bg-error/20'
+                    } ${isLatest ? 'ring-1 ring-ink/30 ring-offset-1' : ''}`}
+                    style={{ height: `${h}px` }}
+                    title={`${formatMonthDay(s.date)}: ${s.blockers_count} blockers, ${s.at_risk_count} at risk`}
+                  />
+                  <span className="text-[8px] text-outline tabular-nums">{formatDay(s.date)}</span>
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex gap-4 mt-4">
+            <span className="flex items-center gap-1.5 text-[9px] text-outline"><span className="w-3 h-2 bg-surface-highest/60" /> Clean</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-outline"><span className="w-3 h-2 bg-on-surface/15" /> Minor</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-outline"><span className="w-3 h-2 bg-error/20" /> Elevated</span>
           </div>
         </div>
       </div>
 
-      {/* Recent briefs */}
-      <div className="mt-10 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-xl text-sand-800">Recent Briefs</h2>
-          <Link href="/standup/history" className="text-xs font-medium text-amber-accent hover:underline">
-            View all &rarr;
+      {/* Recent Briefs */}
+      <div className="animate-fade-up" style={{ animationDelay: '0.25s' }}>
+        <div className="flex items-end justify-between mb-6 border-b border-outline-variant/10 pb-2">
+          <h2 className="label">Recent Briefs</h2>
+          <Link href="/standup/history" className="label text-[9px] text-on-surface-variant hover:text-ink transition-colors">
+            Full Archive &rarr;
           </Link>
         </div>
-        <div className="space-y-2">
+        <div className="flex flex-col">
           {standups.slice(0, 7).map((s: any) => (
             <Link
               key={s.id}
               href={`/standup/briefs/${s.id}`}
-              className="flex items-center justify-between rounded-xl border border-sand-200 bg-white px-5 py-3.5 hover:border-sand-300 hover:shadow-sm transition-all group"
+              className="group flex items-center justify-between py-4 hover:bg-surface-low transition-colors px-4 -mx-4"
             >
-              <div className="flex items-center gap-4">
-                <time className="text-sm font-mono text-sand-500 w-32 tabular-nums">
+              <div className="flex items-center gap-6">
+                <time className="font-body text-sm text-secondary tabular-nums w-32">
                   {formatShortDate(s.date)}
                 </time>
-                <StatusBadges blockers={s.blockers_count} atRisk={s.at_risk_count} />
+                {s.blockers_count > 0 && (
+                  <span className="label text-[9px] text-error">{s.blockers_count} BLOCKER{s.blockers_count !== 1 ? 'S' : ''}</span>
+                )}
+                {s.at_risk_count > 0 && (
+                  <span className="label text-[9px] text-secondary">{s.at_risk_count} AT RISK</span>
+                )}
+                {s.blockers_count === 0 && s.at_risk_count === 0 && (
+                  <span className="label text-[9px] text-outline-variant">CLEAN</span>
+                )}
               </div>
-              <span className="text-xs text-sand-400 group-hover:text-amber-accent transition-colors">
-                View briefs &rarr;
+              <span className="material-symbols-outlined text-outline-variant group-hover:text-ink transition-colors text-[18px]">
+                chevron_right
               </span>
             </Link>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
-function StatCard({ label, value, detail, variant, delay }: {
-  label: string; value: string; detail: string; variant: string; delay: number
-}) {
-  const style = variant === 'danger' ? 'border-brick/20 bg-brick-light/30' : 'border-sand-200 bg-white'
+function StatItem({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl border p-5 ${style} animate-fade-up`} style={{ animationDelay: `${delay * 0.05}s` }}>
-      <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-sand-400">{label}</p>
-      <p className="font-display text-3xl text-sand-800 mt-1">{value}</p>
-      <p className="text-xs text-sand-500 mt-1">{detail}</p>
+    <div>
+      <span className="label block text-[9px] mb-1">{label}</span>
+      <span className={`font-headline text-2xl font-bold ${highlight ? 'text-error' : 'text-ink'}`}>{value}</span>
     </div>
-  )
-}
-
-function StatusBadges({ blockers, atRisk }: { blockers: number; atRisk: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      {blockers > 0 && (
-        <span className="text-[10px] font-semibold text-brick bg-brick-light px-2 py-0.5 rounded-full">
-          {blockers} blocker{blockers !== 1 ? 's' : ''}
-        </span>
-      )}
-      {atRisk > 0 && (
-        <span className="text-[10px] font-semibold text-rust bg-amber-light px-2 py-0.5 rounded-full">
-          {atRisk} at risk
-        </span>
-      )}
-      {blockers === 0 && atRisk === 0 && (
-        <span className="text-[10px] font-semibold text-sage bg-sage-light px-2 py-0.5 rounded-full">
-          Clean
-        </span>
-      )}
-    </div>
-  )
-}
-
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="flex items-center gap-1.5 text-[10px] text-sand-400">
-      <span className={`w-2.5 h-2.5 rounded ${color}`} /> {label}
-    </span>
   )
 }

@@ -1,52 +1,74 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-display: var(--font-dm-serif);
-  --font-body: var(--font-ibm-plex-sans);
-  --font-mono: var(--font-ibm-plex-mono);
+  /* Typography */
+  --font-headline: var(--font-newsreader);
+  --font-body: var(--font-manrope);
 
-  --color-sand-50: #faf9f7;
-  --color-sand-100: #f5f3ef;
-  --color-sand-200: #e8e4dd;
-  --color-sand-300: #d4cec4;
-  --color-sand-400: #a39e93;
-  --color-sand-500: #7a756b;
-  --color-sand-600: #5c574f;
-  --color-sand-700: #43403a;
-  --color-sand-800: #2d2b27;
-  --color-sand-900: #1a1916;
+  /* Surface Hierarchy */
+  --color-surface: #f7f9fb;
+  --color-surface-low: #f2f4f6;
+  --color-surface-mid: #eceef0;
+  --color-surface-high: #e6e8ea;
+  --color-surface-highest: #e0e3e5;
+  --color-surface-lowest: #ffffff;
+  --color-surface-dim: #d8dadc;
 
-  --color-amber-accent: #c8820e;
-  --color-amber-light: #fef3cd;
-  --color-rust: #b44d12;
-  --color-sage: #4a7c59;
-  --color-sage-light: #e8f0eb;
-  --color-brick: #a63d40;
-  --color-brick-light: #fbe8e8;
+  /* Ink Palette */
+  --color-ink: #000000;
+  --color-ink-container: #3b3b3b;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #474747;
+  --color-outline: #777777;
+  --color-outline-variant: #c6c6c6;
+  --color-secondary: #515f74;
+
+  /* Semantic */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-chip: #c7d5ed;
+  --color-on-ink: #e2e2e2;
 }
 
+/* Base */
 body {
   font-family: var(--font-body);
-  background: var(--color-sand-50);
-  color: var(--color-sand-800);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
 }
 
-.brief-content strong {
+/* The Wide-Track Rule — all labels */
+.label {
+  font-family: var(--font-body);
+  font-size: 10px;
   font-weight: 600;
-  color: var(--color-sand-900);
-}
-.brief-content ul {
-  list-style: none;
-  padding-left: 0;
-}
-.brief-content li {
-  padding: 2px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.15rem;
+  color: var(--color-outline);
 }
 
+/* Ink gradient for CTAs */
+.ink-gradient {
+  background: linear-gradient(to bottom, #000000, #3b3b3b);
+}
+
+/* Editorial brief content */
+.brief-content strong { font-weight: 700; color: var(--color-ink); }
+.brief-content ul { list-style: none; padding-left: 0; }
+.brief-content li { padding: 3px 0; }
+.brief-content li::before { content: '—'; margin-right: 8px; color: var(--color-outline-variant); }
+
+/* Animations */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-up {
-  animation: fadeUp 0.5s ease-out both;
+  animation: fadeUp 0.6s ease-out both;
+}
+
+/* Ambient shadow (the only allowed shadow type) */
+.shadow-ambient {
+  box-shadow: 0 8px 60px rgba(25, 28, 30, 0.04);
 }
