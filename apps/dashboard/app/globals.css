@@ -1,1 +1,52 @@
 @import 'tailwindcss';
+
+@theme {
+  --font-display: var(--font-dm-serif);
+  --font-body: var(--font-ibm-plex-sans);
+  --font-mono: var(--font-ibm-plex-mono);
+
+  --color-sand-50: #faf9f7;
+  --color-sand-100: #f5f3ef;
+  --color-sand-200: #e8e4dd;
+  --color-sand-300: #d4cec4;
+  --color-sand-400: #a39e93;
+  --color-sand-500: #7a756b;
+  --color-sand-600: #5c574f;
+  --color-sand-700: #43403a;
+  --color-sand-800: #2d2b27;
+  --color-sand-900: #1a1916;
+
+  --color-amber-accent: #c8820e;
+  --color-amber-light: #fef3cd;
+  --color-rust: #b44d12;
+  --color-sage: #4a7c59;
+  --color-sage-light: #e8f0eb;
+  --color-brick: #a63d40;
+  --color-brick-light: #fbe8e8;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-sand-50);
+  color: var(--color-sand-800);
+}
+
+.brief-content strong {
+  font-weight: 600;
+  color: var(--color-sand-900);
+}
+.brief-content ul {
+  list-style: none;
+  padding-left: 0;
+}
+.brief-content li {
+  padding: 2px 0;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 0.5s ease-out both;
+}
