@@ -102,17 +102,7 @@ function BriefPanel({ audience, subtitle, content, accent, delay }: {
 }) {
   const barColor = accent === 'ink' ? 'bg-ink' : accent === 'secondary' ? 'bg-secondary' : 'bg-outline'
 
-  const html = content
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^- (.*)/gm, '<li>$1</li>')
-    .replace(/^(#{1,3}) (.*)/gm, (_: string, h: string, t: string) => {
-      const lvl = h.length
-      return `<h${lvl + 1} class="font-headline text-ink mt-4 mb-1.5 ${lvl === 1 ? 'text-base font-bold' : 'text-sm font-bold'}">${t}</h${lvl + 1}>`
-    })
-    .replace(/(<li>.*<\/li>\n?)+/g, (m: string) => `<ul class="space-y-0.5 my-2">${m}</ul>`)
-    .split('\n\n')
-    .map((p: string) => p.startsWith('<') ? p : `<p class="mb-2.5">${p}</p>`)
-    .join('')
+  const html = renderBriefContent(content)
 
   return (
     <div className="bg-surface-lowest flex flex-col animate-fade-up shadow-ambient" style={{ animationDelay: `${0.1 + delay * 0.08}s` }}>
@@ -120,16 +110,111 @@ function BriefPanel({ audience, subtitle, content, accent, delay }: {
       <div className="px-5 pt-4 pb-3 border-b border-outline-variant/10 flex items-center justify-between">
         <div>
           <h2 className="font-headline text-lg font-bold text-ink">{audience}</h2>
-          <p className="label text-[8px] text-outline mt-0.5">{subtitle}</p>
+          <p className="font-body text-[11px] text-outline mt-0.5">{subtitle}</p>
         </div>
-        <span className="label text-[8px] text-outline-variant">{audience.split(' ')[0].toUpperCase()}</span>
       </div>
       <div
-        className="px-5 py-4 text-[13px] leading-relaxed text-on-surface-variant brief-content flex-1 overflow-y-auto max-h-[600px]"
+        className="px-5 py-4 text-[13px] leading-relaxed text-on-surface-variant brief-render flex-1 overflow-y-auto max-h-[600px]"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>
   )
+}
+
+/**
+ * Renders brief markdown into styled HTML.
+ * Handles: section headers, status emoji → styled indicators, lists, bold, paragraphs.
+ */
+function renderBriefContent(raw: string): string {
+  // Split into lines for precise control
+  const lines = raw.split('\n')
+  const out: string[] = []
+  let inList = false
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) {
+      if (inList) { out.push('</div>'); inList = false }
+      continue
+    }
+
+    // Title line (first bold line like **Meridian Platform Redesign — Daily Standup (Day 12)**)
+    if (trimmed.match(/^\*\*.*—.*\*\*$/)) {
+      // Skip — the page header already shows this info
+      continue
+    }
+
+    // Section headers: **Completed:**, **In Progress:**, **Blockers:**, **At Risk:**, **Summary:**
+    const sectionMatch = trimmed.match(/^\*\*(?:🚨\s*)?(?:⚠️\s*)?(Completed|In Progress|Blockers|At Risk|Decisions Needed|Summary|Key decisions needed):?\*\*:?\s*(.*)$/)
+    if (sectionMatch) {
+      if (inList) { out.push('</div>'); inList = false }
+      const label = sectionMatch[1]
+      const rest = sectionMatch[2]?.trim() ?? ''
+
+      const colorMap: Record<string, string> = {
+        'Completed': 'bg-ink/8 text-ink',
+        'In Progress': 'bg-secondary/8 text-secondary',
+        'Blockers': 'bg-error/8 text-error',
+        'At Risk': 'bg-error/6 text-error/80',
+        'Decisions Needed': 'bg-chip/30 text-secondary',
+        'Summary': 'bg-surface-low text-on-surface',
+        'Key decisions needed': 'bg-chip/30 text-secondary',
+      }
+      const color = colorMap[label] ?? 'bg-surface-low text-on-surface-variant'
+
+      out.push(`<div class="mt-5 mb-2"><span class="inline-block label text-[9px] px-2 py-0.5 ${color}">${label.toUpperCase()}</span></div>`)
+
+      // If rest has content on same line (e.g. "**Blockers:** None")
+      if (rest && rest !== 'None') {
+        out.push(`<p class="font-body text-[13px] text-on-surface-variant mb-1">${processBold(rest)}</p>`)
+      } else if (rest === 'None') {
+        out.push(`<p class="font-body text-[13px] text-outline-variant italic mb-1">None</p>`)
+      }
+      continue
+    }
+
+    // List items: - ✅/🔄/⚠️/🚨 task text
+    if (trimmed.startsWith('- ')) {
+      if (!inList) { out.push('<div class="flex flex-col gap-1.5 my-1">'); inList = true }
+
+      let text = trimmed.slice(2).trim()
+      let indicator = ''
+
+      // Replace emoji with styled dots
+      if (text.startsWith('✅')) {
+        text = text.slice(1).trim()
+        indicator = '<span class="w-1.5 h-1.5 bg-ink shrink-0 mt-[6px]"></span>'
+      } else if (text.startsWith('🔄')) {
+        text = text.slice(1).trim()
+        indicator = '<span class="w-1.5 h-1.5 bg-secondary shrink-0 mt-[6px]"></span>'
+      } else if (text.startsWith('⚠️')) {
+        text = text.slice(1).trim()
+        indicator = '<span class="w-1.5 h-1.5 bg-error/60 shrink-0 mt-[6px]"></span>'
+      } else if (text.startsWith('🚨')) {
+        text = text.slice(1).trim()
+        indicator = '<span class="w-1.5 h-1.5 bg-error shrink-0 mt-[6px]"></span>'
+      } else {
+        indicator = '<span class="w-1.5 h-1.5 bg-outline-variant shrink-0 mt-[6px]"></span>'
+      }
+
+      out.push(`<div class="flex gap-2.5 items-start">${indicator}<span class="font-body text-[13px] text-on-surface-variant leading-snug">${processBold(text)}</span></div>`)
+      continue
+    }
+
+    // Regular paragraph
+    if (inList) { out.push('</div>'); inList = false }
+    out.push(`<p class="font-body text-[13px] text-on-surface-variant leading-relaxed mb-2">${processBold(trimmed)}</p>`)
+  }
+
+  if (inList) out.push('</div>')
+  return out.join('\n')
+}
+
+/** Process **bold** and *italic* markdown in inline text */
+function processBold(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-ink">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
 }
 
 function SourceRow({ label, detail }: { label: string; detail: string }) {

@@ -53,11 +53,8 @@ body {
   background: linear-gradient(to bottom, #000000, #3b3b3b);
 }
 
-/* Editorial brief content */
-.brief-content strong { font-weight: 700; color: var(--color-ink); }
-.brief-content ul { list-style: none; padding-left: 0; }
-.brief-content li { padding: 3px 0; }
-.brief-content li::before { content: '—'; margin-right: 8px; color: var(--color-outline-variant); }
+/* Brief panel first section — remove top margin */
+.brief-render > div:first-child { margin-top: 0; }
 
 /* Animations */
 @keyframes fadeUp {
