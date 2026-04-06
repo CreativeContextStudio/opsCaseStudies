@@ -88,17 +88,43 @@ export default async function MarketOverview() {
 
   return (
     <section className="max-w-5xl mx-auto px-12 pt-4 pb-24">
-      {/* ── Section A: Hero Split-Screen ── */}
+      {/* ── Section A: Header + Sector Configuration (leads the page) ── */}
       <div className="mb-24 animate-fade-up">
         <p className="label text-secondary italic mb-2">Case Study 02</p>
         <h1 className="font-headline text-5xl font-bold text-ink tracking-tight leading-tight mb-4">
           200 Sources Before<br />Market Open
         </h1>
-        <p className="font-body text-sm text-on-surface-variant max-w-xl leading-relaxed mb-12">
+        <p className="font-body text-sm text-on-surface-variant max-w-xl leading-relaxed mb-16">
           A contextual intelligence system that reads the financial noise so a decision-maker
           doesn&apos;t have to, delivering the signals that actually matter every morning.
         </p>
 
+        <div className="grid grid-cols-12 gap-12">
+          <div className="col-span-5">
+            <h2 className="label mb-4 border-b border-outline-variant/10 pb-2">Sector Configuration</h2>
+            <p className="font-body text-sm text-on-surface-variant leading-relaxed">
+              The system is parameterized, not hardcoded. Every aspect of the intelligence
+              focus is configurable: which sector, which companies to watch, which themes
+              to prioritize, and how aggressively to filter. Change the configuration
+              and the same pipeline serves healthcare, fintech, energy, or any domain.
+            </p>
+            <p className="font-body text-sm text-on-surface-variant leading-relaxed mt-4">
+              This is the differentiator. Not &ldquo;AI reads the news.&rdquo; It&apos;s
+              &ldquo;AI reads the news through the lens of your specific business context.&rdquo;
+            </p>
+          </div>
+          <div className="col-span-7 glass-panel p-6" style={{ borderRadius: '0.375rem' }}>
+            <ConfigRow label="Sector Focus" value="Healthcare AI — artificial intelligence, machine learning, and digital health applications" />
+            <ConfigRow label="Watchlist" value="Tempus AI, Recursion Pharma, Flatiron Health, PathAI, Viz.ai, Butterfly Network, Aidoc" />
+            <ConfigRow label="Priority Themes" value="FDA regulation, clinical trial automation, diagnostic AI, drug discovery ML" />
+            <ConfigRow label="Relevance Threshold" value="40 / 100 — items scoring below are discarded" />
+            <ConfigRow label="Delivery" value="6:30 AM ET weekdays — before market open" last />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section B: Hero Split-Screen (noise vs signal) ── */}
+      <div className="mb-24 animate-fade-up" style={{ animationDelay: '0.05s' }}>
         <div className="grid grid-cols-12 gap-0">
           {/* Noise side */}
           <div className="col-span-7 bg-surface-low p-6 relative overflow-hidden" style={{ maxHeight: '400px' }}>
@@ -143,7 +169,7 @@ export default async function MarketOverview() {
         </div>
       </div>
 
-      {/* ── Section B: Problem Statement ── */}
+      {/* ── Section C: Problem Statement ── */}
       <div className="mb-24 animate-fade-up" style={{ animationDelay: '0.1s' }}>
         <blockquote className="font-headline italic text-2xl text-ink leading-relaxed max-w-3xl mb-8">
           &ldquo;Every morning, a sector analyst wakes up to hundreds of items across news feeds,
@@ -154,32 +180,6 @@ export default async function MarketOverview() {
           <HeroStat value={`${avgPerDay || 200}+`} label="sources scanned daily" />
           <HeroStat value="~3 hrs" label="manual scan time replaced" />
           <HeroStat value={`${latestBriefing?.items_included ?? '5-10'}`} label="signals that matter" />
-        </div>
-      </div>
-
-      {/* ── Section C: Sector Configuration ── */}
-      <div className="mb-24 animate-fade-up" style={{ animationDelay: '0.15s' }}>
-        <h2 className="label mb-6 border-b border-outline-variant/10 pb-2">Sector Configuration</h2>
-        <div className="grid grid-cols-12 gap-12">
-          <div className="col-span-5">
-            <p className="font-body text-sm text-on-surface-variant leading-relaxed">
-              The system is parameterized, not hardcoded. Every aspect of the intelligence
-              focus is configurable: which sector, which companies to watch, which themes
-              to prioritize, and how aggressively to filter. Change the configuration
-              and the same pipeline serves healthcare, fintech, energy, or any domain.
-            </p>
-            <p className="font-body text-sm text-on-surface-variant leading-relaxed mt-4">
-              This is the differentiator. Not &ldquo;AI reads the news.&rdquo; It&apos;s
-              &ldquo;AI reads the news through the lens of your specific business context.&rdquo;
-            </p>
-          </div>
-          <div className="col-span-7 glass-panel p-6" style={{ borderRadius: '0.375rem' }}>
-            <ConfigRow label="Sector Focus" value="Healthcare AI — artificial intelligence, machine learning, and digital health applications" />
-            <ConfigRow label="Watchlist" value="Tempus AI, Recursion Pharma, Flatiron Health, PathAI, Viz.ai, Butterfly Network, Aidoc" />
-            <ConfigRow label="Priority Themes" value="FDA regulation, clinical trial automation, diagnostic AI, drug discovery ML" />
-            <ConfigRow label="Relevance Threshold" value="40 / 100 — items scoring below are discarded" />
-            <ConfigRow label="Delivery" value="6:30 AM ET weekdays — before market open" last />
-          </div>
         </div>
       </div>
 
