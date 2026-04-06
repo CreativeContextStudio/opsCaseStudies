@@ -94,7 +94,7 @@ export default async function StandupOverview() {
             {workstreamStats.map((ws: any) => {
               const pct = ws.total > 0 ? Math.round((ws.done / ws.total) * 100) : 0
               return (
-                <div key={ws.workstream} className="bg-surface-low p-4 flex items-center gap-5">
+                <Link key={ws.workstream} href={`/standup/tasks/${ws.workstream.toLowerCase()}`} className="bg-surface-low p-4 flex items-center gap-5 hover:bg-surface-mid transition-colors group">
                   <div className="w-28 shrink-0">
                     <h3 className="font-body text-sm font-medium text-ink">{ws.workstream}</h3>
                     <p className="font-body text-xs text-outline mt-0.5">{ws.done}/{ws.total} done</p>
@@ -108,7 +108,8 @@ export default async function StandupOverview() {
                   {ws.blocked > 0 && (
                     <span className="label text-[9px] text-error shrink-0">{ws.blocked} BLOCKED</span>
                   )}
-                </div>
+                  <span className="font-body text-xs text-outline group-hover:text-ink transition-colors">&rarr;</span>
+                </Link>
               )
             })}
           </div>

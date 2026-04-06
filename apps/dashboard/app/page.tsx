@@ -1,13 +1,16 @@
 import Link from 'next/link'
-import { getSystemRunStats, getRecentStandups } from './lib/queries'
+import { getSystemRunStats, getRecentStandups, getIngestionStats, getRecentBriefings } from './lib/queries'
 import { formatMonthDay } from './lib/format'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const [runStats, recentStandups] = await Promise.all([
+  const [runStats, recentStandups, marketRunStats, marketStats, marketBriefings] = await Promise.all([
     getSystemRunStats(),
     getRecentStandups(3),
+    getSystemRunStats('market'),
+    getIngestionStats(),
+    getRecentBriefings(1),
   ])
 
   return (
@@ -55,9 +58,43 @@ export default async function Home() {
         </Link>
       </div>
 
+      {/* Market Intelligence — Active */}
+      {marketRunStats?.total_runs > 0 && (
+        <div className="mt-4 animate-fade-up" style={{ animationDelay: '0.12s' }}>
+          <Link
+            href="/market"
+            className="block bg-surface-low p-8 hover:bg-surface-mid transition-colors group"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="label text-[9px] text-ink">Active</span>
+                <h2 className="font-headline text-2xl font-bold text-ink mt-2">
+                  Market Intelligence
+                </h2>
+                <p className="font-body text-sm text-on-surface-variant mt-1 max-w-md">
+                  Monitors 200+ financial sources overnight, scores for relevance, and delivers
+                  a sector-specific briefing before market open.
+                </p>
+              </div>
+              <span className="text-outline group-hover:text-ink transition-colors text-2xl">&rarr;</span>
+            </div>
+
+            <div className="flex items-center gap-8 mt-6 pt-5 border-t border-outline-variant/10">
+              <MiniStat label="Runs" value={String(marketRunStats?.total_runs ?? 0)} />
+              <MiniStat label="Items Scanned" value={marketStats?.total_items ? marketStats.total_items.toLocaleString() : '—'} />
+              <MiniStat label="Signals" value={String(marketStats?.included_items ?? 0)} />
+              <MiniStat label="Latest" value={marketBriefings[0] ? formatMonthDay(marketBriefings[0].date) : '—'} />
+            </div>
+          </Link>
+        </div>
+      )}
+
       {/* Coming soon */}
       <div className="grid grid-cols-3 gap-[1px] bg-outline-variant/10 mt-4">
-        {['Market Intelligence', 'Campaign Ops', 'Client Intelligence', 'Regulatory Monitor', 'Incident Response', 'Content Localization'].map((name) => (
+        {[
+          ...(marketRunStats?.total_runs > 0 ? [] : ['Market Intelligence']),
+          'Campaign Ops', 'Client Intelligence', 'Regulatory Monitor', 'Incident Response', 'Content Localization',
+        ].map((name) => (
           <div key={name} className="bg-surface p-5">
             <h3 className="font-body text-sm text-outline-variant/50">{name}</h3>
             <p className="label text-[8px] text-outline-variant/40 mt-1">Coming soon</p>
