@@ -1,7 +1,16 @@
 import { neon } from '@neondatabase/serverless'
 
+// Single connection per request cycle — avoids creating a new WebSocket per query
+let _sql: ReturnType<typeof neon> | null = null
+
 function sql() {
-  return neon(process.env.DATABASE_URL!)
+  if (!_sql) {
+    // fetchOptions with IPv4 preference to avoid Neon IPv6 timeout issues
+    _sql = neon(process.env.DATABASE_URL!, {
+      fetchOptions: { cache: 'no-store' },
+    })
+  }
+  return _sql
 }
 
 export async function getRecentStandups(limit = 14) {
